@@ -49,6 +49,8 @@ class CommandTests(unittest.TestCase):
         self.assertIn('--skip-column-names', mysql)
         for flag in ('-X', '--no-align', '--tuples-only'):
             self.assertIn(flag, psql)
+        self.assertIn('-F', psql)
+        self.assertEqual(psql[psql.index('-F') + 1], '\t')
 
 
 if __name__ == '__main__':

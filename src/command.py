@@ -21,7 +21,7 @@ def build_mysql_command(mysql, sql, include_database=True):
 
 def build_psql_command(ymatrix, sql):
     command = [str(ymatrix.get('psql_path', 'psql')), '-X', '-v', 'ON_ERROR_STOP=1',
-               '--no-align', '--tuples-only',
+               '--no-align', '--tuples-only', '-F', '\t',
                '-h', str(ymatrix.get('host', '127.0.0.1')), '-p', str(ymatrix.get('port', 5432)),
                '-U', str(ymatrix.get('user', 'mxadmin')), '-d', str(ymatrix.get('database', 'postgres')), '-c', sql]
     env = {}
