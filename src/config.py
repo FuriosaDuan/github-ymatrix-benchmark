@@ -19,8 +19,6 @@ def load_config(path):
     if not data['ymatrix'].get('psql_path'):
         raise ConfigError('缺少配置项: ymatrix.psql_path')
     mysql = data['mysql']
-    if not mysql.get('database'):
-        raise ConfigError('缺少配置项: mysql.database')
     transport = mysql.get('transport', 'local_default')
     if transport not in ('local_default', 'tcp'):
         raise ConfigError('mysql.transport 必须是 local_default 或 tcp')
@@ -31,6 +29,7 @@ def load_config(path):
         raise ConfigError('MVP 仅支持 concurrency=1')
     result = dict(data)
     result['mysql'] = dict(mysql)
+    result['mysql'].setdefault('database', 'benchmark_mvp')
     result['mysql'].setdefault('user', 'root')
     result['mysql'].setdefault('password', '')
     result['benchmark'] = dict(benchmark)

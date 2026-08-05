@@ -376,3 +376,6 @@ scripts/remote_preflight.ps1 必须：
 ## Prompt update — 2026-08-05 21:46:25 +08:00
 
 第三版验收要求：将 MVP 扩展为可配置、可复现、可校验、可报告的 YMatrix/MySQL Linux Benchmark；part=500，timeout=60，warmup=1，measurement=5，支持 session_sql、动态 SQL 发现、结果一致性、Top 慢 SQL、失败分类、完整报告、面试材料，并继续执行真实 Linux 闭环。
+## Prompt update — 2026-08-05 22:04:59 +08:00
+
+SSH 免密运行要求：使用 PowerShell 动态解析的 codex_ymatrix_ed25519 私钥，所有 SSH/SCP 显式携带 IdentitiesOnly=yes、BatchMode=yes；连接后继续 Linux 真实闭环，不再使用交互式密码认证。
