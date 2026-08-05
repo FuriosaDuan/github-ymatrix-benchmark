@@ -379,3 +379,6 @@ scripts/remote_preflight.ps1 必须：
 ## Prompt update — 2026-08-05 22:04:59 +08:00
 
 SSH 免密运行要求：使用 PowerShell 动态解析的 codex_ymatrix_ed25519 私钥，所有 SSH/SCP 显式携带 IdentitiesOnly=yes、BatchMode=yes；连接后继续 Linux 真实闭环，不再使用交互式密码认证。
+## 2026-08-05 22:50:50 +08:00
+
+用户要求提交全部当前成果但不由 Codex 推送，并确认需要一套完全贴合原题的可复现验收流程。验收必须修复并实际输出完整报告，明确真实环境中 YMatrix 使用 TCP、MySQL 使用 local_default，不能将当前结果描述为双 TCP 测试；同时说明此前因 GitHub HTTPS 推送失败，Linux 曾临时绕过 git pull 直接应用同一处已测试修复，最终应恢复 commit → 手动 push → Linux git pull --ff-only 的标准流程。
