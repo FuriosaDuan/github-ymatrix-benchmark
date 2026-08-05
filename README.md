@@ -72,7 +72,7 @@ acceptance-results/YYYYMMDD-HHMMSS/
     └── 同上四个文件
 ```
 
-完整人工验收步骤见 [docs/acceptance.md](docs/acceptance.md)，面试说明见 [docs/interview_demo.md](docs/interview_demo.md)。
+完整人工验收步骤见 [docs/acceptance.md](docs/acceptance.md)，本次 Linux 真实项目展示记录见 [docs/project_demo.md](docs/project_demo.md)，面试说明见 [docs/interview_demo.md](docs/interview_demo.md)。
 
 ## 测试口径
 
