@@ -19,6 +19,8 @@ def load_config(path):
     if not data['ymatrix'].get('psql_path'):
         raise ConfigError('缺少配置项: ymatrix.psql_path')
     mysql = data['mysql']
+    if not mysql.get('database'):
+        raise ConfigError('缺少配置项: mysql.database')
     transport = mysql.get('transport', 'local_default')
     if transport not in ('local_default', 'tcp'):
         raise ConfigError('mysql.transport 必须是 local_default 或 tcp')

@@ -29,6 +29,12 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_config(self.write_config(data))
 
+    def test_mysql_database_is_required(self):
+        data = {'ymatrix': {'psql_path': 'psql'}, 'mysql': {'transport': 'local_default'},
+                'benchmark': {}}
+        with self.assertRaises(ConfigError):
+            load_config(self.write_config(data))
+
     def test_concurrency_must_be_one(self):
         data = {'ymatrix': {}, 'mysql': {}, 'benchmark': {'concurrency': 2}}
         with self.assertRaises(ConfigError):

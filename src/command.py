@@ -7,7 +7,8 @@ class CommandError(Exception):
 
 
 def build_mysql_command(mysql, sql):
-    command = ['mysql', '--batch', '--raw', '-u', str(mysql.get('user', 'root')), '-e', sql]
+    command = ['mysql', '--batch', '--raw', '-u', str(mysql.get('user', 'root')),
+               '--database', str(mysql['database']), '-e', sql]
     env = {}
     if mysql.get('transport') == 'tcp':
         command[1:1] = ['--host', str(mysql['host']), '--port', str(mysql['port'])]
@@ -50,5 +51,8 @@ def run_command(command, env=None, timeout=0, runner=None):
     code, stdout, stderr = result
     if code != 0:
         message = (stderr or stdout or '未知错误').strip()
+        for secret in (env or {}).values():
+            if secret:
+                message = message.replace(str(secret), '[REDACTED]')
         raise CommandError('命令退出码 {}: {}'.format(code, message))
     return stdout

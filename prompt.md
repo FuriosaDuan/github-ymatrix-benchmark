@@ -370,3 +370,6 @@ scripts/remote_preflight.ps1 必须：
 - Python 3.6 兼容性风险
 - 尚需在 Linux 手动创建的配置
 - 下一条需要用户批准的操作
+## Prompt update — 2026-08-05 20:50:06 +08:00
+
+修正 Linux 真实闭环：增加 MySQL 目标 database、真实 preflight、四表安全分批 INSERT 装载、双数据库 COUNT 校验、严格 all 顺序、warmup、monotonic 计时、带时区 ISO 8601 时间和对应 mock 测试；本轮禁止连接 Linux、真实数据库和 git push。
