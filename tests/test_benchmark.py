@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-from src.benchmark import benchmark_database
+from src.benchmark import benchmark_database, build_comparisons, compare_result_sets
 
 
 class BenchmarkTests(unittest.TestCase):
@@ -37,8 +37,18 @@ class BenchmarkTests(unittest.TestCase):
             if not hasattr(runner, 'calls'):
                 runner.calls = 0
             runner.calls += 1
-            return (1, '', 'failed') if runner.calls == 1 else (0, '', '')
+            return (1, '', 'failed') if runner.calls == 2 else (0, '', '')
         with mock.patch('src.benchmark.time.monotonic', side_effect=[1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13]):
             rows, summaries = benchmark_database(config, 'mysql', self.directory, runner=runner)
         self.assertFalse(rows[0]['success'])
         self.assertEqual(summaries['mysql']['q01']['avg'], 2000.0)
+
+    def test_result_consistency_and_performance_comparison_are_explicit(self):
+        results = {'ymatrix': {'q01': {'rows': [['1']], 'error_message': ''}},
+                   'mysql': {'q01': {'rows': [['1.0']], 'error_message': ''}}}
+        comparisons = compare_result_sets(results)
+        self.assertTrue(comparisons[0]['match'])
+        perf = build_comparisons({'ymatrix': {'q01': {'avg': 2, 'success_rate': 1}},
+                                  'mysql': {'q01': {'avg': 4, 'success_rate': 1}}})
+        self.assertEqual(perf[0]['faster_database'], 'ymatrix')
+        self.assertEqual(perf[0]['faster_by_percent'], 100)

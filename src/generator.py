@@ -4,7 +4,7 @@ import random
 from decimal import Decimal
 
 
-SIZES = {'customer': 1000, 'part': 1000, 'orders': 10000, 'lineitem': 30000}
+SIZES = {'customer': 1000, 'part': 500, 'orders': 10000, 'lineitem': 30000}
 
 
 def _write(path, fields, rows):

@@ -40,6 +40,16 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaises(ConfigError):
             load_config(self.write_config(data))
 
+    def test_v3_defaults_and_session_sql(self):
+        data = {'ymatrix': {'psql_path': 'psql'}, 'mysql': {'transport': 'local_default',
+                'database': 'benchmark_mvp'}, 'benchmark': {}, 'paths': {}}
+        config = load_config(self.write_config(data))
+        self.assertEqual(config['benchmark']['warmup_rounds'], 1)
+        self.assertEqual(config['benchmark']['measurement_rounds'], 5)
+        self.assertEqual(config['benchmark']['timeout_seconds'], 60)
+        self.assertEqual(config['mysql']['session_sql'], [])
+        self.assertEqual(config['paths']['mysql_sql_dir'], 'sql/mysql')
+
 
 if __name__ == '__main__':
     unittest.main()

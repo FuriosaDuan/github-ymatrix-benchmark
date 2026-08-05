@@ -1,7 +1,8 @@
 import os
 import shutil
 
-from .command import build_mysql_command, build_psql_command, run_command
+from .command import CommandError, build_mysql_command, build_psql_command, run_command
+from .database import execute_query
 
 
 def read_sql(path):
@@ -15,19 +16,28 @@ def preflight(config, runner=None):
         raise ValueError('psql 不存在或不可执行: ' + psql_path)
     if not shutil.which('mysql'):
         raise ValueError('mysql 命令不在 PATH 中')
-    execute_sql(config, 'ymatrix', 'SELECT version();', runner=runner)
-    execute_sql(config, 'mysql', 'SELECT VERSION();', runner=runner)
-    return {'status': 'ready', 'message': 'YMatrix 和 MySQL preflight 连接成功'}
+    ymatrix_output, _ = execute_query(config, 'ymatrix', 'SELECT version()', runner=runner)
+    try:
+        mysql_output, _ = execute_query(config, 'mysql', 'SELECT VERSION()', runner=runner)
+    except CommandError:
+        ensure_mysql_database(config, runner=runner)
+        mysql_output, _ = execute_query(config, 'mysql', 'SELECT VERSION()', runner=runner)
+    return {'status': 'ready',
+            'message': 'YMatrix client/database ready; MySQL client/database ready',
+            'ymatrix_version': ymatrix_output.strip(),
+            'mysql_version': mysql_output.strip()}
+
+
+def ensure_mysql_database(config, runner=None):
+    mysql = config['mysql']
+    command, env = build_mysql_command(mysql, 'CREATE DATABASE IF NOT EXISTS {};'.format(mysql['database']),
+                                       include_database=False)
+    return run_command(command, env=env, timeout=config['benchmark'].get('timeout_seconds', 60), runner=runner)
 
 
 def execute_sql(config, database, sql, runner=None):
-    if database == 'mysql':
-        command, env = build_mysql_command(config['mysql'], sql)
-    elif database == 'ymatrix':
-        command, env = build_psql_command(config['ymatrix'], sql)
-    else:
-        raise ValueError('不支持的数据库: ' + database)
-    return run_command(command, env=env, timeout=config['benchmark'].get('timeout_seconds', 0), runner=runner)
+    output, _ = execute_query(config, database, sql, runner=runner)
+    return output
 
 
 def load_schema(config, database, schema_path, runner=None):

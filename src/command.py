@@ -6,9 +6,11 @@ class CommandError(Exception):
     pass
 
 
-def build_mysql_command(mysql, sql):
-    command = ['mysql', '--batch', '--raw', '-u', str(mysql.get('user', 'root')),
-               '--database', str(mysql['database']), '-e', sql]
+def build_mysql_command(mysql, sql, include_database=True):
+    command = ['mysql', '--batch', '--raw', '--skip-column-names', '-u', str(mysql.get('user', 'root')),
+               '-e', sql]
+    if include_database:
+        command[6:6] = ['--database', str(mysql['database'])]
     env = {}
     if mysql.get('transport') == 'tcp':
         command[1:1] = ['--host', str(mysql['host']), '--port', str(mysql['port'])]
@@ -19,6 +21,7 @@ def build_mysql_command(mysql, sql):
 
 def build_psql_command(ymatrix, sql):
     command = [str(ymatrix.get('psql_path', 'psql')), '-X', '-v', 'ON_ERROR_STOP=1',
+               '--no-align', '--tuples-only',
                '-h', str(ymatrix.get('host', '127.0.0.1')), '-p', str(ymatrix.get('port', 5432)),
                '-U', str(ymatrix.get('user', 'mxadmin')), '-d', str(ymatrix.get('database', 'postgres')), '-c', sql]
     env = {}

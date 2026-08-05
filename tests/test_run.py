@@ -14,6 +14,6 @@ class RunTests(unittest.TestCase):
              mock.patch.object(run, 'generate_data', side_effect=lambda p: events.append('generate')), \
              mock.patch.object(run, 'run_load', side_effect=lambda *args: events.append('load')), \
              mock.patch.object(run, 'run_validate', side_effect=lambda *args: events.append('validate')), \
-             mock.patch.object(run, 'run_benchmark', side_effect=lambda *args: events.append('benchmark')):
+             mock.patch.object(run, 'run_benchmark', side_effect=lambda *args, **kwargs: events.append('benchmark')):
             self.assertEqual(run.main(['all', '--config', 'config.local.json']), 0)
         self.assertEqual(events, ['preflight', 'generate', 'load', 'validate', 'benchmark'])

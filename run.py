@@ -5,13 +5,13 @@ import sys
 
 from src.config import ConfigError, load_config
 from src.generator import generate_data
-from src.validator import validate_generated_data
 from src.initializer import preflight
 from src.loader import load_database
 from src.validator import validate_databases
-from src.benchmark import benchmark_database
+from src.benchmark import run_benchmark_suite
 from src.command import CommandError
 from src.reporter import write_benchmark_detail, write_environment, write_markdown_report
+from src.reporter import write_benchmark_log
 
 
 def paths(config):
@@ -36,18 +36,33 @@ def run_validate(config, location):
     return rows
 
 
-def run_benchmark(config, location):
-    all_rows = []
-    all_summaries = {}
-    for database, sql_dir in (('ymatrix', 'sql/ymatrix'), ('mysql', 'sql/mysql')):
-        rows, summaries = benchmark_database(config, database, sql_dir)
-        all_rows.extend(rows)
-        all_summaries.update(summaries)
+def run_benchmark(config, location, preflight_info=None):
+    sql_dirs = {'ymatrix': config['paths']['ymatrix_sql_dir'],
+                'mysql': config['paths']['mysql_sql_dir']}
+    all_rows, all_summaries, correctness, comparisons = run_benchmark_suite(config, sql_dirs)
     write_benchmark_detail(os.path.join(location['results'], 'benchmark_detail.csv'), all_rows)
-    write_markdown_report(os.path.join(location['results'], 'benchmark_report.md'), all_summaries)
+    metadata = {'data_sizes': 'customer=1000, part=500, orders=10000, lineitem=30000, seed=2026',
+                'warmup_rounds': config['benchmark']['warmup_rounds'],
+                'measurement_rounds': config['benchmark']['measurement_rounds'],
+                'timeout_seconds': config['benchmark']['timeout_seconds']}
+    if preflight_info:
+        metadata['ymatrix_version'] = preflight_info.get('ymatrix_version', '')
+        metadata['mysql_version'] = preflight_info.get('mysql_version', '')
+    write_markdown_report(os.path.join(location['results'], 'benchmark_report.md'),
+                          all_summaries, comparisons=comparisons,
+                          correctness=correctness, metadata=metadata, detail_rows=all_rows)
+    write_benchmark_log(os.path.join(location['results'], 'benchmark.log'), all_rows)
     write_environment(os.path.join(location['results'], 'environment.md'),
-                      {'platform': platform.platform(), 'python': sys.version.split()[0]})
+                      {'platform': platform.platform(), 'python': sys.version.split()[0],
+                       'data_sizes': metadata['data_sizes'],
+                       'warmup_rounds': metadata['warmup_rounds'],
+                       'measurement_rounds': metadata['measurement_rounds'],
+                       'timeout_seconds': metadata['timeout_seconds'],
+                       'ymatrix_version': metadata.get('ymatrix_version', ''),
+                       'mysql_version': metadata.get('mysql_version', '')})
     print('benchmark results written to ' + location['results'])
+    if not all(item['match'] for item in correctness):
+        raise ValueError('查询结果一致性校验失败')
     return all_summaries
 
 
@@ -63,7 +78,10 @@ def main(argv=None):
             if platform.system() == 'Windows':
                 print('Windows 不执行真实数据库 preflight；请在 Linux 集成环境运行。')
                 return 2
-            print(preflight(config)['message'])
+            info = preflight(config)
+            print(info['message'])
+            print('YMatrix version: ' + info['ymatrix_version'])
+            print('MySQL version: ' + info['mysql_version'])
         elif args.command == 'generate':
             generate_data(location['data'])
             print('generated data in ' + location['data'])
@@ -81,16 +99,16 @@ def main(argv=None):
             if platform.system() == 'Windows':
                 print('Windows 不执行真实数据库 benchmark；请在 Linux 集成环境运行。')
                 return 2
-            run_benchmark(config, location)
+            run_benchmark(config, location, preflight_info=preflight(config))
         elif args.command == 'all':
             if platform.system() == 'Windows':
                 print('Windows 仅支持 preflight/generate/validate；请在 Linux 集成环境运行 all。')
                 return 2
-            preflight(config)
+            preflight_info = preflight(config)
             generate_data(location['data'])
             run_load(config, location)
             run_validate(config, location)
-            run_benchmark(config, location)
+            run_benchmark(config, location, preflight_info=preflight_info)
     except (ConfigError, CommandError, ValueError, OSError) as exc:
         print('ERROR: ' + str(exc), file=sys.stderr)
         return 1

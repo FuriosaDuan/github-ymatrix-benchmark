@@ -1,6 +1,7 @@
 import unittest
 
 from src.command import CommandError, build_mysql_command, run_command
+from src.command import build_psql_command
 
 
 class CommandTests(unittest.TestCase):
@@ -39,6 +40,15 @@ class CommandTests(unittest.TestCase):
         with self.assertRaises(CommandError) as context:
             run_command(['mysql'], env={'MYSQL_PWD': 'secret'}, runner=runner)
         self.assertNotIn('secret', str(context.exception))
+
+    def test_v3_client_output_flags(self):
+        mysql, _ = build_mysql_command({'transport': 'local_default', 'user': 'root',
+                                        'password': '', 'database': 'benchmark_mvp'}, 'SELECT 1')
+        psql, _ = build_psql_command({'psql_path': 'psql', 'host': 'h', 'port': 1,
+                                      'user': 'u', 'database': 'd'}, 'SELECT 1')
+        self.assertIn('--skip-column-names', mysql)
+        for flag in ('-X', '--no-align', '--tuples-only'):
+            self.assertIn(flag, psql)
 
 
 if __name__ == '__main__':
