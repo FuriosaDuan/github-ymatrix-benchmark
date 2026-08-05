@@ -388,3 +388,6 @@ SSH 免密运行要求：使用 PowerShell 动态解析的 codex_ymatrix_ed25519
 ## 2026-08-05 23:24:29 +08:00
 
 用户确认采用纯 Python 标准库自研生成器方案，不增加 dbgen/qgen 等额外工具或环境；尽量贴近标准 TPC-H，重构为 region、nation、supplier、customer、part、partsupp、orders、lineitem 八张关联表，以供应商和采购商交易行为形成供应链雪花模型，提供 YMatrix 与 MySQL 5.7 各 Q01–Q22、默认 SF=0.01 mock/真实数据、Linux 双库对比和完整人工可复现流程。必须明确这属于 TPC-H 兼容测试而非官方标准或审计结果。
+## 2026-08-05 23:51:35 +08:00
+
+用户已手动 push，要求在 Linux 同步并完成真实验收；若 GitHub HTTPS 无法正常拉取，明确授权绕过网络覆盖同步。随后用户调整结果回收要求：不强制复制到 Windows，只需 Linux 项目通过八表、Q01–Q22 双库一致性及两轮 Benchmark，并交付一份具体到 Linux 结果文件绝对路径的完整项目展示过程文档。

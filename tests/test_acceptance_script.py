@@ -8,7 +8,7 @@ class AcceptanceScriptTests(unittest.TestCase):
         self.assertTrue(os.path.isfile(path))
         with open(path, 'r', encoding='utf-8') as handle:
             content = handle.read()
-        self.assertIn('set -eu', content)
+        self.assertIn('set -euo pipefail', content)
         commands = ['compileall', 'unittest', 'preflight', 'generate', 'load', 'validate']
         positions = [content.index(value) for value in commands]
         self.assertEqual(positions, sorted(positions))

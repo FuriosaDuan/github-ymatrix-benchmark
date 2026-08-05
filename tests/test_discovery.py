@@ -31,6 +31,16 @@ class DiscoveryTests(unittest.TestCase):
                     sql = handle.read().strip().upper()
                 self.assertTrue(sql.startswith('SELECT') or sql.startswith('WITH'))
 
+    def test_distributed_queries_use_preaggregated_joins(self):
+        for database in ('ymatrix', 'mysql'):
+            with open(os.path.join('sql', database, 'q02.sql'), encoding='utf-8') as handle:
+                q02 = handle.read().lower()
+            with open(os.path.join('sql', database, 'q20.sql'), encoding='utf-8') as handle:
+                q20 = handle.read().lower()
+            self.assertNotIn('ps2.ps_partkey=p.p_partkey', q02)
+            self.assertIn('min(ps0.ps_supplycost)', q02)
+            self.assertIn('group by l_partkey,l_suppkey', q20)
+
 
 if __name__ == '__main__':
     unittest.main()

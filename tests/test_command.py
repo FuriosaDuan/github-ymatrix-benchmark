@@ -51,6 +51,8 @@ class CommandTests(unittest.TestCase):
             self.assertIn(flag, psql)
         self.assertIn('-F', psql)
         self.assertEqual(psql[psql.index('-F') + 1], '\t')
+        self.assertIn('-P', psql)
+        self.assertEqual(psql[psql.index('-P') + 1], 'null=NULL')
 
 
 if __name__ == '__main__':

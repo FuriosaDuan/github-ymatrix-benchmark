@@ -17,7 +17,10 @@ def normalize_rows(rows):
         values = []
         for value in row:
             try:
-                values.append(Decimal(value))
+                number = Decimal(value)
+                if number.as_tuple().exponent < -6:
+                    number = number.quantize(Decimal('0.000001'))
+                values.append(number)
             except (InvalidOperation, ValueError):
                 values.append(value)
         normalized.append(values)

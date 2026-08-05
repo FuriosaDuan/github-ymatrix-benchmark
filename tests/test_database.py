@@ -13,6 +13,10 @@ class DatabaseTests(unittest.TestCase):
     def test_decimal_values_compare_by_value(self):
         self.assertEqual(normalize_rows([['1.0']]), normalize_rows([['1.00']]))
 
+    def test_decimal_results_compare_at_six_decimal_places(self):
+        self.assertEqual(normalize_rows([['8.0740640409221976']]),
+                         normalize_rows([['8.0740640409']]))
+
 
 if __name__ == '__main__':
     unittest.main()
