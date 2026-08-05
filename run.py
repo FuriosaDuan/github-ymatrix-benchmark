@@ -4,7 +4,7 @@ import platform
 import sys
 
 from src.config import ConfigError, load_config
-from src.generator import generate_data
+from src.generator import generate_data, sizes_for_scale
 from src.initializer import preflight
 from src.loader import load_database
 from src.validator import validate_databases
@@ -41,10 +41,20 @@ def run_benchmark(config, location, preflight_info=None):
                 'mysql': config['paths']['mysql_sql_dir']}
     all_rows, all_summaries, correctness, comparisons = run_benchmark_suite(config, sql_dirs)
     write_benchmark_detail(os.path.join(location['results'], 'benchmark_detail.csv'), all_rows)
-    metadata = {'data_sizes': 'customer=1000, part=500, orders=10000, lineitem=30000, seed=2026',
+    scale_factor = config['benchmark'].get('scale_factor', 0.01)
+    sizes = sizes_for_scale(scale_factor)
+    size_text = ', '.join('{}={}'.format(name, sizes[name]) for name in
+                          ('region', 'nation', 'supplier', 'customer', 'part',
+                           'partsupp', 'orders', 'lineitem'))
+    metadata = {'data_sizes': size_text + ', seed=2026',
+                'scale_factor': scale_factor,
                 'warmup_rounds': config['benchmark']['warmup_rounds'],
                 'measurement_rounds': config['benchmark']['measurement_rounds'],
-                'timeout_seconds': config['benchmark']['timeout_seconds']}
+                'timeout_seconds': config['benchmark']['timeout_seconds'],
+                'ymatrix_transport': 'tcp {}:{}'.format(config['ymatrix']['host'], config['ymatrix']['port']),
+                'mysql_transport': config['mysql']['transport'],
+                'indexes': ('nation(region), supplier(nation), customer(nation), orders(date/customer), '
+                            'lineitem(order/part/supplier)')}
     if preflight_info:
         metadata['ymatrix_version'] = preflight_info.get('ymatrix_version', '')
         metadata['mysql_version'] = preflight_info.get('mysql_version', '')
@@ -55,9 +65,13 @@ def run_benchmark(config, location, preflight_info=None):
     write_environment(os.path.join(location['results'], 'environment.md'),
                       {'platform': platform.platform(), 'python': sys.version.split()[0],
                        'data_sizes': metadata['data_sizes'],
+                       'scale_factor': metadata['scale_factor'],
                        'warmup_rounds': metadata['warmup_rounds'],
                        'measurement_rounds': metadata['measurement_rounds'],
                        'timeout_seconds': metadata['timeout_seconds'],
+                       'ymatrix_transport': metadata['ymatrix_transport'],
+                       'mysql_transport': metadata['mysql_transport'],
+                       'indexes': metadata['indexes'],
                        'ymatrix_version': metadata.get('ymatrix_version', ''),
                        'mysql_version': metadata.get('mysql_version', '')})
     print('benchmark results written to ' + location['results'])
@@ -83,7 +97,7 @@ def main(argv=None):
             print('YMatrix version: ' + info['ymatrix_version'])
             print('MySQL version: ' + info['mysql_version'])
         elif args.command == 'generate':
-            generate_data(location['data'])
+            generate_data(location['data'], scale_factor=config.get('benchmark', {}).get('scale_factor', 0.01))
             print('generated data in ' + location['data'])
         elif args.command == 'validate':
             if platform.system() == 'Windows':
@@ -105,7 +119,7 @@ def main(argv=None):
                 print('Windows 仅支持 preflight/generate/validate；请在 Linux 集成环境运行 all。')
                 return 2
             preflight_info = preflight(config)
-            generate_data(location['data'])
+            generate_data(location['data'], scale_factor=config.get('benchmark', {}).get('scale_factor', 0.01))
             run_load(config, location)
             run_validate(config, location)
             run_benchmark(config, location, preflight_info=preflight_info)

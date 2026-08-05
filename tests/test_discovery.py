@@ -19,6 +19,18 @@ class DiscoveryTests(unittest.TestCase):
             handle.write('ignore')
         self.assertEqual([item[0] for item in discover_sql(directory)], ['q01', 'q02'])
 
+    def test_project_has_matching_q01_through_q22_for_both_databases(self):
+        expected = ['q{:02d}'.format(number) for number in range(1, 23)]
+        ymatrix = [item[0] for item in discover_sql(os.path.join('sql', 'ymatrix'))]
+        mysql = [item[0] for item in discover_sql(os.path.join('sql', 'mysql'))]
+        self.assertEqual(ymatrix, expected)
+        self.assertEqual(mysql, expected)
+        for directory in (os.path.join('sql', 'ymatrix'), os.path.join('sql', 'mysql')):
+            for _, path in discover_sql(directory):
+                with open(path, 'r', encoding='utf-8') as handle:
+                    sql = handle.read().strip().upper()
+                self.assertTrue(sql.startswith('SELECT') or sql.startswith('WITH'))
+
 
 if __name__ == '__main__':
     unittest.main()

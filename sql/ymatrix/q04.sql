@@ -1,0 +1,1 @@
+SELECT o_orderpriority, COUNT(*) AS order_count FROM tpch_orders o WHERE o_orderdate >= DATE '1993-07-01' AND o_orderdate < DATE '1993-10-01' AND EXISTS (SELECT 1 FROM tpch_lineitem l WHERE l.l_orderkey=o.o_orderkey AND l.l_commitdate < l.l_receiptdate) GROUP BY o_orderpriority ORDER BY o_orderpriority;

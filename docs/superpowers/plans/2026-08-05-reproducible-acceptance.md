@@ -13,7 +13,7 @@
 - Python 3.6.8 and standard library only.
 - Never print or commit `config.local.json` secrets.
 - Never execute DROP DATABASE, DROP SCHEMA, COPY, LOAD DATA LOCAL INFILE, sudo, or service restarts.
-- MySQL remains `local_default` for the confirmed real environment; TCP is an optional separately configured mode.
+- The accepted workload is simplified TPC-H style; do not claim standard TPC-H or implemented TPC-C.
 - Every acceptance stage stops immediately on failure.
 
 ---
@@ -47,7 +47,7 @@
 - [ ] Add a static unittest that verifies command order, `set -eu`, two benchmark executions, result snapshots, and absence of prohibited SQL/secret-print commands.
 - [ ] Run the new test and confirm failure because the script is absent.
 - [ ] Implement the Bash script with positional config argument defaulting to `config.local.json`, project-root resolution, timestamped output, and `tee` logs.
-- [ ] Document exact Windows push, Linux clean pull, MySQL database initialization, acceptance invocation, expected row counts, output files, SCP collection, and TCP boundary.
+- [ ] Document exact Windows push, Linux clean pull, MySQL database initialization, acceptance invocation, expected row counts, output files, SCP collection, and TPC scope boundary.
 - [ ] Run the script test and full Windows suite.
 
 ### Task 3: Preserve reproducible index setup and report metadata

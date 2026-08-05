@@ -1,4 +1,8 @@
-CREATE TABLE IF NOT EXISTS bench_customer (c_custkey INTEGER PRIMARY KEY, c_name TEXT, c_nation INTEGER);
-CREATE TABLE IF NOT EXISTS bench_part (p_partkey INTEGER PRIMARY KEY, p_name TEXT, p_retailprice NUMERIC(12,2));
-CREATE TABLE IF NOT EXISTS bench_orders (o_orderkey INTEGER PRIMARY KEY, o_custkey INTEGER, o_orderdate DATE, o_totalprice NUMERIC(14,2));
-CREATE TABLE IF NOT EXISTS bench_lineitem (l_orderkey INTEGER, l_partkey INTEGER, l_quantity INTEGER, l_extendedprice NUMERIC(14,2));
+CREATE TABLE IF NOT EXISTS tpch_region (r_regionkey INTEGER PRIMARY KEY, r_name TEXT, r_comment TEXT);
+CREATE TABLE IF NOT EXISTS tpch_nation (n_nationkey INTEGER PRIMARY KEY, n_name TEXT, n_regionkey INTEGER, n_comment TEXT);
+CREATE TABLE IF NOT EXISTS tpch_supplier (s_suppkey INTEGER PRIMARY KEY, s_name TEXT, s_address TEXT, s_nationkey INTEGER, s_phone TEXT, s_acctbal NUMERIC(15,2), s_comment TEXT);
+CREATE TABLE IF NOT EXISTS tpch_customer (c_custkey INTEGER PRIMARY KEY, c_name TEXT, c_address TEXT, c_nationkey INTEGER, c_phone TEXT, c_acctbal NUMERIC(15,2), c_mktsegment TEXT, c_comment TEXT);
+CREATE TABLE IF NOT EXISTS tpch_part (p_partkey INTEGER PRIMARY KEY, p_name TEXT, p_mfgr TEXT, p_brand TEXT, p_type TEXT, p_size INTEGER, p_container TEXT, p_retailprice NUMERIC(15,2), p_comment TEXT);
+CREATE TABLE IF NOT EXISTS tpch_partsupp (ps_partkey INTEGER, ps_suppkey INTEGER, ps_availqty INTEGER, ps_supplycost NUMERIC(15,2), ps_comment TEXT, PRIMARY KEY (ps_partkey, ps_suppkey));
+CREATE TABLE IF NOT EXISTS tpch_orders (o_orderkey INTEGER PRIMARY KEY, o_custkey INTEGER, o_orderstatus CHAR(1), o_totalprice NUMERIC(15,2), o_orderdate DATE, o_orderpriority TEXT, o_clerk TEXT, o_shippriority INTEGER, o_comment TEXT);
+CREATE TABLE IF NOT EXISTS tpch_lineitem (l_orderkey INTEGER, l_partkey INTEGER, l_suppkey INTEGER, l_linenumber INTEGER, l_quantity NUMERIC(15,2), l_extendedprice NUMERIC(15,2), l_discount NUMERIC(15,2), l_tax NUMERIC(15,2), l_returnflag CHAR(1), l_linestatus CHAR(1), l_shipdate DATE, l_commitdate DATE, l_receiptdate DATE, l_shipinstruct TEXT, l_shipmode TEXT, l_comment TEXT, PRIMARY KEY (l_orderkey, l_linenumber));

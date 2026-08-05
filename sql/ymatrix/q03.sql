@@ -1,3 +1,1 @@
-SELECT p.p_partkey, p.p_name, SUM(l.l_extendedprice) AS sales
-FROM bench_part p JOIN bench_lineitem l ON l.l_partkey = p.p_partkey
-GROUP BY p.p_partkey, p.p_name ORDER BY sales DESC, p.p_partkey ASC LIMIT 10;
+SELECT l.l_orderkey, SUM(l.l_extendedprice*(1-l.l_discount)) AS revenue, o.o_orderdate, o.o_shippriority FROM tpch_customer c JOIN tpch_orders o ON c.c_custkey=o.o_custkey JOIN tpch_lineitem l ON l.l_orderkey=o.o_orderkey WHERE c.c_mktsegment='BUILDING' AND o.o_orderdate < DATE '1995-03-15' AND l.l_shipdate > DATE '1995-03-15' GROUP BY l.l_orderkey, o.o_orderdate, o.o_shippriority ORDER BY revenue DESC, o.o_orderdate, l.l_orderkey LIMIT 10;

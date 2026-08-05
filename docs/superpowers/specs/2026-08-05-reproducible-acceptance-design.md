@@ -17,9 +17,9 @@
 | 结果业务一致性 | `src/database.py`、`src/benchmark.py` | 报告第 6 节 |
 | TPC-C 扩展说明 | `docs/interview_demo.md` | 面试验收说明 |
 
-## 真实连接边界
+## TPC 实现边界
 
-本次环境中 YMatrix 使用 TCP（127.0.0.1:5432），MySQL 使用 `transport=local_default`。项目支持 MySQL TCP 配置，但本次实测不得表述为双 TCP 对比。若要验收 MySQL TCP，必须准备真实可登录的 TCP 账号并在配置中明确 `transport=tcp`、host、port。
+当前实现是简化 TPC-H 风格 Benchmark，不是标准 TPC-H；TPC-C 当前是扩展说明，尚未实现标准事务负载执行器。这符合原题“TPC-H 可优先支持，TPC-C 可作为命令包装或扩展说明”的验收边界。网络连接方式仍应在环境报告中按实际配置记录，但不是本题所称的 TPC 测试流程。
 
 ## 输出与可复现流程
 

@@ -11,7 +11,7 @@ class RunTests(unittest.TestCase):
         with mock.patch.object(run, 'load_config', return_value=config), \
              mock.patch.object(run.platform, 'system', return_value='Linux'), \
              mock.patch.object(run, 'preflight', side_effect=lambda c: events.append('preflight')), \
-             mock.patch.object(run, 'generate_data', side_effect=lambda p: events.append('generate')), \
+             mock.patch.object(run, 'generate_data', side_effect=lambda p, **kwargs: events.append('generate')), \
              mock.patch.object(run, 'run_load', side_effect=lambda *args: events.append('load')), \
              mock.patch.object(run, 'run_validate', side_effect=lambda *args: events.append('validate')), \
              mock.patch.object(run, 'run_benchmark', side_effect=lambda *args, **kwargs: events.append('benchmark')):

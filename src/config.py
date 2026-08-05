@@ -34,8 +34,11 @@ def load_config(path):
     result['mysql'].setdefault('password', '')
     result['benchmark'] = dict(benchmark)
     result['benchmark'].setdefault('warmup_rounds', 1)
+    result['benchmark'].setdefault('scale_factor', 0.01)
     result['benchmark'].setdefault('measurement_rounds', 5)
     result['benchmark'].setdefault('timeout_seconds', 60)
+    if float(result['benchmark']['scale_factor']) <= 0:
+        raise ConfigError('benchmark.scale_factor 必须大于 0')
     if int(result['benchmark']['warmup_rounds']) < 0 or int(result['benchmark']['measurement_rounds']) <= 0:
         raise ConfigError('warmup_rounds 必须 >= 0，measurement_rounds 必须 > 0')
     result['ymatrix'] = dict(data['ymatrix'])

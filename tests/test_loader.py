@@ -36,7 +36,24 @@ class LoaderTests(unittest.TestCase):
         self.assertGreater(len(inserts), 0)
         self.assertTrue(all(sql.count('),') < 500 for sql in inserts))
         joined = '\n'.join(statements)
-        self.assertIn('bench_customer', joined)
+        self.assertIn('tpch_customer', joined)
         self.assertNotIn('COPY', joined.upper())
         self.assertNotIn('LOAD DATA', joined.upper())
         self.assertNotIn("['", joined)
+
+    def test_load_ensures_same_three_logical_indexes(self):
+        statements = []
+
+        def runner(command, env, timeout):
+            statements.append(command[-1])
+            return 0, '0\n', ''
+
+        config = {'mysql': {'transport': 'local_default', 'user': 'root', 'password': '',
+                            'database': 'benchmark_mvp'},
+                  'benchmark': {'timeout_seconds': 60}}
+        load_database(config, 'mysql', self.directory, 'schema/mysql.sql', runner=runner)
+        joined = '\n'.join(statements)
+        self.assertIn('idx_tpch_orders_orderdate', joined)
+        self.assertIn('idx_tpch_lineitem_orderkey', joined)
+        self.assertIn('idx_tpch_lineitem_partkey', joined)
+        self.assertEqual(joined.count('CREATE INDEX idx_tpch_'), 8)

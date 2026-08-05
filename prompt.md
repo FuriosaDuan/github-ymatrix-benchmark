@@ -382,3 +382,9 @@ SSH 免密运行要求：使用 PowerShell 动态解析的 codex_ymatrix_ed25519
 ## 2026-08-05 22:50:50 +08:00
 
 用户要求提交全部当前成果但不由 Codex 推送，并确认需要一套完全贴合原题的可复现验收流程。验收必须修复并实际输出完整报告，明确真实环境中 YMatrix 使用 TCP、MySQL 使用 local_default，不能将当前结果描述为双 TCP 测试；同时说明此前因 GitHub HTTPS 推送失败，Linux 曾临时绕过 git pull 直接应用同一处已测试修复，最终应恢复 commit → 手动 push → Linux git pull --ff-only 的标准流程。
+## 2026-08-05 23:00:48 +08:00
+
+用户纠正术语：此前所说的是 TPC 测试流程，不是 TCP 网络连接。可复现验收必须完全贴合原题，准确说明当前项目是简化 TPC-H 风格 Benchmark、不是标准完整 TPC-H；TPC-C 当前可按原题作为命令包装或扩展说明，不得误称已经实现标准 TPC-C。需要实际生成并回收 CSV 明细、Markdown 汇总、环境说明和 benchmark.log。
+## 2026-08-05 23:24:29 +08:00
+
+用户确认采用纯 Python 标准库自研生成器方案，不增加 dbgen/qgen 等额外工具或环境；尽量贴近标准 TPC-H，重构为 region、nation、supplier、customer、part、partsupp、orders、lineitem 八张关联表，以供应商和采购商交易行为形成供应链雪花模型，提供 YMatrix 与 MySQL 5.7 各 Q01–Q22、默认 SF=0.01 mock/真实数据、Linux 双库对比和完整人工可复现流程。必须明确这属于 TPC-H 兼容测试而非官方标准或审计结果。

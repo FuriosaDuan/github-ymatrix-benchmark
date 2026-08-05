@@ -2,7 +2,7 @@
 
 ## 30 秒项目介绍
 
-这是一个面向 YMatrix 与 MySQL 的 SQL Benchmark 工具，用于 PoC、性能验证和竞品对比。工具用固定 seed 生成四张简化 TPC-H 风格表，使用 psql/mysql 命令行客户端执行同一组 SQL，区分 warmup 和正式轮次，记录端到端耗时，并生成 CSV、Markdown、环境信息和日志。正式 benchmark 前会校验两套数据库的行数和查询结果一致性，保证结果可复现、可解释。
+这是一个面向 YMatrix 与 MySQL 的 SQL Benchmark 工具，用于 PoC、性能验证和竞品对比。工具用固定 seed 生成 region、nation、supplier、customer、part、partsupp、orders、lineitem 八张供应链关联表，在两库执行 Q01–Q22 分析查询，区分 warmup 和正式轮次，记录端到端耗时并生成四类报告。正式 benchmark 前会校验 CSV 关联、两库行数和查询结果一致性。
 
 ## 2 分钟技术说明
 
@@ -39,7 +39,7 @@
 
 ### 为什么当前测试不属于标准 TPC-H？
 
-当前只有四张简化表和三条自定义查询，数据规模、数据分布和查询集合都不是 TPC-H 标准规范。
+当前虽覆盖八表和 22 类分析场景，但数据由自研 Python 生成器产生，未使用官方 dbgen/qgen，也未执行官方审计、刷新函数和完整 Power/Throughput 规则，因此只能称为 TPC-H 兼容测试。
 
 ### 怎样扩展到完整 TPC-H？
 

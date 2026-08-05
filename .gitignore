@@ -1,5 +1,6 @@
 config.local.json
 data/
 results/
+acceptance-results/
 __pycache__/
 *.pyc

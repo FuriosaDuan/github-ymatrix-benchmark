@@ -1,22 +1,17 @@
-import csv
-import os
 import tempfile
 import unittest
 
-from src.generator import SIZES
-from src.validator import validate_databases
+from src.generator import SIZES, generate_data
+from src.validator import validate_databases, validate_generated_data
 
 
 class ValidatorTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.mkdtemp()
-        self.addCleanup(lambda: [os.remove(os.path.join(self.directory, name))
-                                 for name in os.listdir(self.directory)])
-        for name in SIZES:
-            with open(os.path.join(self.directory, name + '.csv'), 'w', newline='') as handle:
-                writer = csv.writer(handle)
-                writer.writerow(['id'])
-                writer.writerow([1])
+        generate_data(self.directory, seed=2026, scale_factor=0.01)
+
+    def test_generated_data_validates_eight_counts_and_relationships(self):
+        self.assertEqual(validate_generated_data(self.directory), SIZES)
 
     def test_validate_queries_both_databases_and_rejects_mismatch(self):
         calls = []
@@ -27,9 +22,14 @@ class ValidatorTests(unittest.TestCase):
 
         config = {'ymatrix': {'psql_path': 'psql', 'host': 'h', 'port': 1, 'user': 'u', 'database': 'd'},
                   'mysql': {'transport': 'local_default', 'user': 'root', 'database': 'benchmark_mvp'},
-                  'benchmark': {'timeout_seconds': 0}}
+                  'benchmark': {'timeout_seconds': 60}}
         rows = validate_databases(config, self.directory, runner=runner)
-        self.assertEqual(len(calls), 8)
+        self.assertEqual(len(calls), 16)
+        self.assertEqual(len(rows), 8)
         self.assertTrue(all(row['match'] is False for row in rows))
         with self.assertRaises(ValueError):
             validate_databases(config, self.directory, runner=runner, raise_on_mismatch=True)
+
+
+if __name__ == '__main__':
+    unittest.main()

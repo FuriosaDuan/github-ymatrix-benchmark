@@ -46,6 +46,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config['benchmark']['warmup_rounds'], 1)
         self.assertEqual(config['benchmark']['measurement_rounds'], 5)
         self.assertEqual(config['benchmark']['timeout_seconds'], 60)
+        self.assertEqual(config['benchmark']['scale_factor'], 0.01)
         self.assertEqual(config['mysql']['session_sql'], [])
         self.assertEqual(config['paths']['mysql_sql_dir'], 'sql/mysql')
 

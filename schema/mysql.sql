@@ -1,4 +1,8 @@
-CREATE TABLE IF NOT EXISTS bench_customer (c_custkey INT PRIMARY KEY, c_name VARCHAR(64), c_nation INT);
-CREATE TABLE IF NOT EXISTS bench_part (p_partkey INT PRIMARY KEY, p_name VARCHAR(64), p_retailprice DECIMAL(12,2));
-CREATE TABLE IF NOT EXISTS bench_orders (o_orderkey INT PRIMARY KEY, o_custkey INT, o_orderdate DATE, o_totalprice DECIMAL(14,2));
-CREATE TABLE IF NOT EXISTS bench_lineitem (l_orderkey INT, l_partkey INT, l_quantity INT, l_extendedprice DECIMAL(14,2));
+CREATE TABLE IF NOT EXISTS tpch_region (r_regionkey INT PRIMARY KEY, r_name VARCHAR(32), r_comment VARCHAR(152));
+CREATE TABLE IF NOT EXISTS tpch_nation (n_nationkey INT PRIMARY KEY, n_name VARCHAR(32), n_regionkey INT, n_comment VARCHAR(152));
+CREATE TABLE IF NOT EXISTS tpch_supplier (s_suppkey INT PRIMARY KEY, s_name VARCHAR(64), s_address VARCHAR(128), s_nationkey INT, s_phone VARCHAR(32), s_acctbal DECIMAL(15,2), s_comment VARCHAR(255));
+CREATE TABLE IF NOT EXISTS tpch_customer (c_custkey INT PRIMARY KEY, c_name VARCHAR(64), c_address VARCHAR(128), c_nationkey INT, c_phone VARCHAR(32), c_acctbal DECIMAL(15,2), c_mktsegment VARCHAR(32), c_comment VARCHAR(255));
+CREATE TABLE IF NOT EXISTS tpch_part (p_partkey INT PRIMARY KEY, p_name VARCHAR(128), p_mfgr VARCHAR(32), p_brand VARCHAR(32), p_type VARCHAR(64), p_size INT, p_container VARCHAR(32), p_retailprice DECIMAL(15,2), p_comment VARCHAR(255));
+CREATE TABLE IF NOT EXISTS tpch_partsupp (ps_partkey INT, ps_suppkey INT, ps_availqty INT, ps_supplycost DECIMAL(15,2), ps_comment VARCHAR(255), PRIMARY KEY (ps_partkey, ps_suppkey));
+CREATE TABLE IF NOT EXISTS tpch_orders (o_orderkey INT PRIMARY KEY, o_custkey INT, o_orderstatus CHAR(1), o_totalprice DECIMAL(15,2), o_orderdate DATE, o_orderpriority VARCHAR(32), o_clerk VARCHAR(32), o_shippriority INT, o_comment VARCHAR(255));
+CREATE TABLE IF NOT EXISTS tpch_lineitem (l_orderkey INT, l_partkey INT, l_suppkey INT, l_linenumber INT, l_quantity DECIMAL(15,2), l_extendedprice DECIMAL(15,2), l_discount DECIMAL(15,2), l_tax DECIMAL(15,2), l_returnflag CHAR(1), l_linestatus CHAR(1), l_shipdate DATE, l_commitdate DATE, l_receiptdate DATE, l_shipinstruct VARCHAR(32), l_shipmode VARCHAR(16), l_comment VARCHAR(255), PRIMARY KEY (l_orderkey, l_linenumber));

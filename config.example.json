@@ -18,6 +18,7 @@
     "session_sql": []
   },
   "benchmark": {
+    "scale_factor": 0.01,
     "warmup_rounds": 1,
     "measurement_rounds": 5,
     "concurrency": 1,
