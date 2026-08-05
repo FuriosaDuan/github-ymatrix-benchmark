@@ -1,0 +1,27 @@
+{
+  "ymatrix": {
+    "psql_path": "/opt/ymatrix/matrixdb5/bin/psql",
+    "host": "127.0.0.1",
+    "port": 5432,
+    "user": "mxadmin",
+    "database": "postgres",
+    "password": ""
+  },
+  "mysql": {
+    "transport": "local_default",
+    "host": "",
+    "port": 3306,
+    "user": "root",
+    "password": ""
+  },
+  "benchmark": {
+    "warmup_rounds": 1,
+    "measurement_rounds": 3,
+    "concurrency": 1,
+    "timeout_seconds": 0
+  },
+  "paths": {
+    "data_dir": "data",
+    "results_dir": "results"
+  }
+}

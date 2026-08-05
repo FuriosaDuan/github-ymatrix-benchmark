@@ -1,0 +1,5 @@
+config.local.json
+data/
+results/
+__pycache__/
+*.pyc
