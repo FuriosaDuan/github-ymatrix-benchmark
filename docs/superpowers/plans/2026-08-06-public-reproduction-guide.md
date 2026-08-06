@@ -31,10 +31,11 @@
 - Consumes: repository-root `.gitignore` rules.
 - Produces: stable ignore coverage for credentials, generated artifacts, and maintainer-only documents.
 
-- [ ] **Step 1: Write the failing ignore-policy test**
+- [ ] **Step 1: Write the failing ignore-behavior test**
 
 ```python
 import os
+import subprocess
 import unittest
 
 
@@ -43,17 +44,21 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class RepositoryHygieneTests(unittest.TestCase):
     def test_private_and_generated_paths_are_ignored(self):
-        with open(os.path.join(ROOT, '.gitignore'), 'r', encoding='utf-8') as handle:
-            rules = {line.strip() for line in handle if line.strip() and not line.startswith('#')}
-        expected = {
+        paths = (
             'config.local.json',
-            'data/',
-            'results/',
-            'acceptance-results/',
+            'data/generated.csv',
+            'results/benchmark_report.md',
+            'acceptance-results/example/run1/benchmark.log',
             'docs/interview_demo.md',
             'docs/project_demo.md',
-        }
-        self.assertTrue(expected.issubset(rules))
+        )
+        process = subprocess.Popen(
+            ['git', 'check-ignore', '--stdin'], cwd=ROOT,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, universal_newlines=True)
+        stdout, stderr = process.communicate('\n'.join(paths) + '\n')
+        self.assertEqual(0, process.returncode, stderr)
+        self.assertEqual(list(paths), stdout.splitlines())
 ```
 
 - [ ] **Step 2: Run the focused test and verify RED**
@@ -94,43 +99,13 @@ Expected: 1 test passes.
 ### Task 2: Build the authoritative Linux reproduction guide
 
 **Files:**
-- Modify: `tests/test_repository_hygiene.py`
 - Create: `docs/linux_reproduction.md`
 
 **Interfaces:**
 - Consumes: `config.example.json`, `run.py`, `scripts/acceptance_linux.sh`, and generated result filenames.
 - Produces: a public guide whose commands can be copied on a fresh CentOS-compatible Linux host.
 
-- [ ] **Step 1: Add a failing documentation coverage test**
-
-Add to `RepositoryHygieneTests`:
-
-```python
-    def test_linux_guide_covers_every_execution_stage_and_result(self):
-        path = os.path.join(ROOT, 'docs', 'linux_reproduction.md')
-        with open(path, 'r', encoding='utf-8') as handle:
-            guide = handle.read()
-        required = (
-            'git clone', 'git pull --ff-only', 'config.local.json',
-            'CREATE DATABASE IF NOT EXISTS benchmark_mvp',
-            'python3 -m compileall run.py src tests',
-            'python3 -m unittest discover -s tests -v',
-            'run.py preflight', 'run.py generate', 'run.py load',
-            'run.py validate', 'run.py benchmark', 'run.py all',
-            'scripts/acceptance_linux.sh', 'benchmark_detail.csv',
-            'benchmark_report.md', 'environment.md', 'benchmark.log',
-        )
-        for text in required:
-            self.assertIn(text, guide)
-```
-
-- [ ] **Step 2: Run the focused test and verify RED**
-
-Run: `python -m unittest tests.test_repository_hygiene -v`
-
-Expected: ERROR because `docs/linux_reproduction.md` does not exist.
-
-- [ ] **Step 3: Write `docs/linux_reproduction.md`**
+- [ ] **Step 1: Write `docs/linux_reproduction.md`**
 
 Use these exact top-level sections:
 
@@ -166,44 +141,22 @@ The guide must:
 - warn that this is TPC-H-compatible, not an official audited TPC-H result;
 - include safe rerun instructions that rely on the existing project-owned table clearing behavior and never use `DROP DATABASE`.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [ ] **Step 2: Review the guide against the required-stage checklist**
 
-Run: `python -m unittest tests.test_repository_hygiene -v`
-
-Expected: 2 tests pass.
+Manually verify every section and command listed above appears once in the correct execution order. Human-facing prose is reviewed directly rather than protected by brittle source-text tests.
 
 ---
 
 ### Task 3: Rewrite the public README entry point
 
 **Files:**
-- Modify: `tests/test_repository_hygiene.py`
 - Modify: `README.md`
 
 **Interfaces:**
 - Consumes: the authoritative workflow in `docs/linux_reproduction.md`.
 - Produces: a concise repository landing page with no personal machine paths or interview-only links.
 
-- [ ] **Step 1: Add a failing README contract test**
-
-```python
-    def test_readme_links_public_guide_without_personal_documents(self):
-        with open(os.path.join(ROOT, 'README.md'), 'r', encoding='utf-8') as handle:
-            readme = handle.read()
-        self.assertIn('docs/linux_reproduction.md', readme)
-        self.assertIn('bash scripts/acceptance_linux.sh config.local.json', readme)
-        self.assertNotIn('docs/interview_demo.md', readme)
-        self.assertNotIn('docs/project_demo.md', readme)
-        self.assertNotIn('/home/mxadmin/', readme)
-```
-
-- [ ] **Step 2: Run the focused test and verify RED**
-
-Run: `python -m unittest tests.test_repository_hygiene -v`
-
-Expected: FAIL because the existing README links both personal documents and lacks the new guide.
-
-- [ ] **Step 3: Rewrite `README.md` in UTF-8**
+- [ ] **Step 1: Rewrite `README.md` in UTF-8**
 
 Use this structure:
 
@@ -221,11 +174,9 @@ Use this structure:
 
 Keep the quick path short, link to `docs/linux_reproduction.md`, and avoid user-specific paths, credentials, previous measured values, or interview references.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [ ] **Step 2: Review README links and privacy boundaries**
 
-Run: `python -m unittest tests.test_repository_hygiene -v`
-
-Expected: 3 tests pass.
+Confirm it links `docs/linux_reproduction.md`, includes the acceptance command, excludes both personal-document links, and contains no fixed `/home/mxadmin/` path.
 
 ---
 
@@ -250,40 +201,15 @@ Expected: 3 tests pass.
 - Consumes: existing module boundaries and public function signatures.
 - Produces: human-readable module/function documentation with no behavior changes.
 
-- [ ] **Step 1: Add a failing module-docstring test**
-
-Add to `tests/test_repository_hygiene.py`:
-
-```python
-    def test_runtime_python_modules_have_docstrings(self):
-        import ast
-        paths = [os.path.join(ROOT, 'run.py')]
-        src_dir = os.path.join(ROOT, 'src')
-        paths.extend(os.path.join(src_dir, name) for name in os.listdir(src_dir)
-                     if name.endswith('.py'))
-        for path in paths:
-            with open(path, 'r', encoding='utf-8') as handle:
-                tree = ast.parse(handle.read(), filename=path)
-            self.assertTrue(ast.get_docstring(tree), path)
-```
-
-- [ ] **Step 2: Run the focused test and verify RED**
-
-Run: `python -m unittest tests.test_repository_hygiene -v`
-
-Expected: FAIL and identify runtime modules without module-level docstrings.
-
-- [ ] **Step 3: Add concise docstrings without behavior changes**
+- [ ] **Step 1: Add concise docstrings without behavior changes**
 
 Each file begins with one sentence describing its responsibility. Add function docstrings only to orchestration or non-obvious transformation functions such as `run_load`, `run_validate`, `run_benchmark`, `load_config`, `run_command`, `execute_query`, `generate_data`, `load_database`, `validate_databases`, `run_benchmark_suite`, and report writers.
 
 Do not rename functions, change arguments, reorder database operations, change SQL text, or modify exception handling.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [ ] **Step 2: Compile and review module documentation**
 
-Run: `python -m unittest tests.test_repository_hygiene -v`
-
-Expected: 4 tests pass.
+Run `python -m compileall run.py src` and inspect the diff to confirm every runtime module has a concise responsibility statement and no executable statement changed.
 
 ---
 
@@ -301,7 +227,7 @@ Expected: 4 tests pass.
 
 Run: `python -m unittest discover -s tests -v`
 
-Expected: all existing tests plus 4 repository-hygiene tests pass.
+Expected: all existing tests plus 1 repository-hygiene behavior test pass.
 
 - [ ] **Step 2: Verify Python 3.6-compatible compilation**
 
