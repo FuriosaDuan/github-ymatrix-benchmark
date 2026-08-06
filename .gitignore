@@ -2,5 +2,10 @@ config.local.json
 data/
 results/
 acceptance-results/
+.superpowers/
 __pycache__/
 *.pyc
+
+# Maintainer-only presentation material
+docs/interview_demo.md
+docs/project_demo.md
