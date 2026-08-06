@@ -1,57 +1,94 @@
-# YMatrix / MySQL SQL Benchmark V3
+# YMatrix / MySQL TPC-H-Compatible Benchmark
 
-这是一个仅使用 Python 3.6.8 标准库实现的、可复现的数据库 Benchmark 工具，支持 YMatrix 与 MySQL 的 TPC-H 兼容分析查询对比。
+## 项目定位
 
-项目使用 region、nation、supplier、customer、part、partsupp、orders、lineitem 八张供应链表和 Q01–Q22 分析查询。数据由自研标准库生成器产生，因此它不是官方 dbgen/qgen 或经审计的标准 TPC-H；TPC-C 当前提供扩展方案。
+这是一个仅使用 Python 3.6.8 标准库实现的双数据库 SQL Benchmark 工具。项目用固定 seed 生成同一份供应链数据，在 YMatrix 与 MySQL 中装载八张关联表、执行 Q01～Q22、多轮统计执行时间、校验查询结果一致性，并自动输出 CSV 和 Markdown 报告。
 
-## 数据关系
+本项目是 **TPC-H-compatible 工作负载**，不是官方或经审计的 TPC-H：它没有使用官方 `dbgen/qgen`，也没有实现完整 Power、Throughput、Refresh Function 和审计流程。当前项目也不是 TPC-C。
+
+## 数据模型
 
 ```text
 region → nation → supplier ─┐
-          │                 ├→ partsupp ← part
-          └→ customer → orders → lineitem ─┘
+            └→ customer     ├→ partsupp → part
+                 └→ orders → lineitem ──┘
 ```
 
-`partsupp` 定义商品与供应商的可供货关系，`lineitem(partkey,suppkey)` 必须存在对应 partsupp；customer 通过 orders 发起采购，lineitem 记录实际商品、供应商、数量、价格、折扣、税和物流日期。
+实际表统一使用 `tpch_` 前缀：
+
+- `tpch_region`、`tpch_nation`：地区与国家层级。
+- `tpch_supplier`、`tpch_customer`：供应商与采购商。
+- `tpch_part`、`tpch_partsupp`：商品及供应商供货关系。
+- `tpch_orders`、`tpch_lineitem`：采购订单与明细。
+
+每条订单明细的 `(partkey, suppkey)` 都存在于 `partsupp`，两套数据库加载完全相同的 CSV。
 
 ## 已实现能力
 
-- JSON 配置：数据库连接、SQL 目录、轮数、并发、预热、超时和 `session_sql`。
-- 非递归、按文件名升序批量发现全部 `.sql` 文件。
-- 确定性数据生成：seed=2026，默认 SF=0.01，八表规模为 5/25/100/1500/2000/8000/15000/60000。
-- 两库真实建表、清表、最多 500 行的多行 INSERT 装载。
-- CSV 关联完整性、行数与两数据库 `COUNT(*)` 三方校验。
-- warmup 与 measurement 分离；`time.monotonic()` 端到端计时。
-- avg、min、max、nearest-rank p95、成功率和失败分类。
-- 两数据库 Q01–Q22 结果业务一致性校验及逐查询性能差异。
-- CSV 明细、Markdown 报告、环境说明和 benchmark.log。
+- JSON 配置：双数据库连接、SQL 目录、scale factor、warmup、正式轮数、并发、超时和 `session_sql`。
+- 固定 seed `2026` 的确定性八表数据生成；默认 SF=0.01。
+- YMatrix 与 MySQL 真实 preflight、建表、清表和分批多行 INSERT。
+- CSV 行数、表间关联和双数据库 `COUNT(*)` 三方校验。
+- 非递归、按文件名排序发现两个 SQL 目录中的全部 `.sql` 文件。
+- Q01～Q22 双数据库查询结果规范化和业务一致性校验。
+- warmup 与 measurement 分离，使用 `time.monotonic()` 记录客户端端到端耗时。
+- avg、min、max、nearest-rank p95、成功率、失败分类和逐查询性能差异。
+- CSV 明细、Markdown 汇总、环境说明和 `benchmark.log`。
+- Linux 两轮自动验收和时间戳结果归档。
 
-## Windows 开发验证
+## 环境要求
 
-```powershell
-python -m unittest discover -s tests -v
-python -m compileall run.py src tests
-git diff --check
-python run.py generate --config config.example.json
+- Linux x86_64；已验证 CentOS 7.9。
+- Python 3.6.8，仅使用标准库。
+- YMatrix/PostgreSQL 兼容数据库和可执行的 `psql`。
+- MySQL 5.7 兼容数据库和 PATH 中的 `mysql` 客户端。
+- Git、Bash，以及项目表和项目数据库所需权限。
+
+Windows 只用于 unittest、compileall 和 mock；真实数据库流程在 Linux 执行。
+
+## 最短复现流程
+
+首次拉取：
+
+```bash
+git clone https://github.com/FuriosaDuan/TPC-test.git ymatrix-mysql-benchmark
+cd ymatrix-mysql-benchmark
+cp config.example.json config.local.json
+chmod 600 config.local.json
+vi config.local.json
 ```
 
-Windows 只运行 mock 测试和静态检查，不连接真实数据库。
-
-## Linux 一键验收
-
-首次只需创建项目专用 MySQL 数据库：
+不要显示或提交 `config.local.json`。确认连接配置后执行：
 
 ```bash
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS benchmark_mvp;"
+python3 -m compileall run.py src tests
+python3 -m unittest discover -s tests -v
+python3 run.py preflight --config config.local.json
+python3 run.py all --config config.local.json
 ```
 
-确认 `config.local.json` 已存在且未被 Git 跟踪，然后执行：
+需要保存每个阶段日志和两轮正式结果时执行：
 
 ```bash
 bash scripts/acceptance_linux.sh config.local.json
 ```
 
-脚本依次运行 compileall、unittest、preflight、generate、load、validate 和两次正式 benchmark。输出保存在：
+完整的拉取、更新、配置说明、分步骤命令、预期行数、结果核对和故障定位见 [Linux 完整复现与验收指南](docs/linux_reproduction.md)。
+
+## 输出文件
+
+最近一次 `benchmark` 或 `all` 结果：
+
+```text
+results/
+├── benchmark_detail.csv
+├── benchmark_report.md
+├── environment.md
+└── benchmark.log
+```
+
+两轮验收结果：
 
 ```text
 acceptance-results/YYYYMMDD-HHMMSS/
@@ -63,20 +100,34 @@ acceptance-results/YYYYMMDD-HHMMSS/
 ├── linux_validate.txt
 ├── linux_benchmark_run1.txt
 ├── linux_benchmark_run2.txt
-├── run1/
-│   ├── benchmark_detail.csv
-│   ├── benchmark_report.md
-│   ├── environment.md
-│   └── benchmark.log
-└── run2/
-    └── 同上四个文件
+├── run1/  # 四个结果文件
+└── run2/  # 四个结果文件
 ```
 
-完整人工验收步骤见 [docs/acceptance.md](docs/acceptance.md)，本次 Linux 真实项目展示记录见 [docs/project_demo.md](docs/project_demo.md)，面试说明见 [docs/interview_demo.md](docs/interview_demo.md)。
+`data/`、`results/` 和 `acceptance-results/` 都是可重新生成的本地目录，不进入 Git。
 
-## 测试口径
+## 项目结构
 
-本项目使用纯 Python 标准库生成 TPC-H 兼容数据和 22 类分析查询，不属于标准或经审计的 TPC-H 测试。
+```text
+run.py                 CLI 和流程编排
+config.example.json    无真实凭据的配置模板
+src/                   配置、客户端、生成、装载、校验、Benchmark、统计和报告
+schema/                YMatrix 与 MySQL 八表 DDL
+sql/ymatrix/           YMatrix/PostgreSQL Q01～Q22
+sql/mysql/             MySQL 5.7 Q01～Q22
+scripts/               Linux 验收与远端检查脚本
+tests/                 标准库 unittest 和数据库 mock
+docs/                  公共复现与验收文档
+data/                  自动生成 CSV（已忽略）
+results/               最近一次报告（已忽略）
+acceptance-results/    两轮验收证据（已忽略）
+```
+
+每个代码文件的职责、输入、输出和调用关系见 [Linux 指南第 12 节](docs/linux_reproduction.md#12-项目文件逐一说明)。
+
+## 测试边界
+
+本项目当前使用简化的 TPC-H 风格数据和查询，不属于标准 TPC-H 测试。
 
 MVP 通过命令行客户端进程记录端到端执行时间，其中包含客户端进程启动和连接建立开销。
 
