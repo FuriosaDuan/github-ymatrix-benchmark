@@ -1,3 +1,5 @@
+"""Execute SQL through CLI clients and normalize their tabular result output."""
+
 from decimal import Decimal, InvalidOperation
 
 from .command import build_mysql_command, build_psql_command, run_command
@@ -28,6 +30,7 @@ def normalize_rows(rows):
 
 
 def execute_query(config, database, sql, session_sql=None, runner=None):
+    """Execute session settings and a query in one database client process."""
     statements = list(session_sql or [])
     statements.append(sql)
     combined_sql = '\n'.join(statement.rstrip(';') + ';' for statement in statements)

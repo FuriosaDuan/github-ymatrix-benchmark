@@ -1,3 +1,5 @@
+"""Run real client preflight checks and execute schema initialization SQL."""
+
 import os
 import shutil
 
@@ -11,6 +13,7 @@ def read_sql(path):
 
 
 def preflight(config, runner=None):
+    """Verify both clients, connections, versions, and the MySQL target database."""
     psql_path = config['ymatrix']['psql_path']
     if not os.path.isfile(psql_path) or not os.access(psql_path, os.X_OK):
         raise ValueError('psql 不存在或不可执行: ' + psql_path)
@@ -29,6 +32,7 @@ def preflight(config, runner=None):
 
 
 def ensure_mysql_database(config, runner=None):
+    """Create the configured project database if it does not already exist."""
     mysql = config['mysql']
     command, env = build_mysql_command(mysql, 'CREATE DATABASE IF NOT EXISTS {};'.format(mysql['database']),
                                        include_database=False)

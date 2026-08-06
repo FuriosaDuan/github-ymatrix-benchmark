@@ -1,3 +1,5 @@
+"""Render benchmark detail, comparison reports, environment metadata, and logs."""
+
 import csv
 import os
 
@@ -13,6 +15,7 @@ def _ensure_parent(path):
 
 
 def write_benchmark_detail(path, rows):
+    """Write formal measurement rows to the required detail CSV schema."""
     _ensure_parent(path)
     with open(path, 'w', newline='', encoding='utf-8') as handle:
         writer = csv.DictWriter(handle, fieldnames=DETAIL_FIELDS)
@@ -48,6 +51,7 @@ def _conclusion(comparisons, correctness):
 
 def write_markdown_report(path, summaries, comparisons=None, correctness=None, metadata=None,
                           detail_rows=None):
+    """Write the complete human-readable benchmark report from measured rows."""
     _ensure_parent(path)
     comparisons = comparisons or []
     correctness = correctness or []
@@ -119,6 +123,7 @@ def write_markdown_report(path, summaries, comparisons=None, correctness=None, m
 
 
 def write_benchmark_log(path, rows):
+    """Write one auditable log line for every formal benchmark execution."""
     _ensure_parent(path)
     with open(path, 'w', encoding='utf-8', newline='') as handle:
         for row in rows:
@@ -129,6 +134,7 @@ def write_benchmark_log(path, rows):
 
 
 def write_environment(path, values):
+    """Write database versions, runtime parameters, data scale, and limitations."""
     _ensure_parent(path)
     with open(path, 'w', encoding='utf-8', newline='') as handle:
         for key in sorted(values):

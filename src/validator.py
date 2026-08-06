@@ -1,3 +1,5 @@
+"""Validate generated relationships and reconcile CSV and database row counts."""
+
 import csv
 import os
 
@@ -16,6 +18,7 @@ def _rows(output_dir, name):
 
 
 def validate_relationships(output_dir):
+    """Reject generated data whose supply-chain foreign-key relationships break."""
     regions = set(int(row['r_regionkey']) for row in _rows(output_dir, 'region'))
     nations = set()
     for row in _rows(output_dir, 'nation'):
@@ -54,6 +57,7 @@ def validate_relationships(output_dir):
 
 def validate_generated_data(output_dir, enforce_sizes=True, expected_sizes=None,
                             enforce_relationships=True):
+    """Return CSV row counts after relationship and optional scale checks."""
     expected_sizes = expected_sizes or SIZES
     result = {}
     for name, expected in expected_sizes.items():
@@ -79,6 +83,7 @@ def _count(config, database, table, runner=None):
 
 
 def validate_databases(config, data_dir, runner=None, raise_on_mismatch=False):
+    """Compare expected CSV counts with YMatrix and MySQL COUNT(*) results."""
     expected = validate_generated_data(data_dir, enforce_sizes=False, enforce_relationships=True)
     rows = []
     for name, table in TABLES.items():

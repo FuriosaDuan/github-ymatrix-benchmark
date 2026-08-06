@@ -1,3 +1,5 @@
+"""Build database client commands and execute them without exposing passwords."""
+
 import os
 import subprocess
 
@@ -45,6 +47,7 @@ def _default_runner(command, env, timeout):
 
 
 def run_command(command, env=None, timeout=0, runner=None):
+    """Run a client command, enforce timeout, redact secrets, and return stdout."""
     try:
         result = (runner or _default_runner)(command, env or {}, timeout)
     except (TimeoutError, subprocess.TimeoutExpired) as exc:

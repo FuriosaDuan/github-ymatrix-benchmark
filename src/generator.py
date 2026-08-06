@@ -1,3 +1,5 @@
+"""Generate deterministic, relationally consistent TPC-H-compatible CSV data."""
+
 import csv
 import datetime
 import os
@@ -48,6 +50,7 @@ def _write(path, fields, rows):
 
 
 def generate_data(output_dir, seed=2026, scale_factor=0.01):
+    """Write all eight CSV files and return their scale-derived row counts."""
     rng = random.Random(seed)
     sizes = sizes_for_scale(scale_factor)
     _write(os.path.join(output_dir, 'region.csv'), ['r_regionkey', 'r_name', 'r_comment'],

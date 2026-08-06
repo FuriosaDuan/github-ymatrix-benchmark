@@ -1,1 +1,1 @@
-"""YMatrix/MySQL benchmark MVP."""
+"""Standard-library modules for the YMatrix/MySQL benchmark workflow."""

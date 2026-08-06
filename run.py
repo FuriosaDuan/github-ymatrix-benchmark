@@ -1,3 +1,5 @@
+"""Command-line entry point for the complete dual-database benchmark workflow."""
+
 import argparse
 import os
 import platform
@@ -15,11 +17,13 @@ from src.reporter import write_benchmark_log
 
 
 def paths(config):
+    """Return generated-data and result directories from normalized config."""
     configured = config.get('paths', {})
     return {'data': configured.get('data_dir', 'data'), 'results': configured.get('results_dir', 'results')}
 
 
 def run_load(config, location):
+    """Create, clear, and load all project tables in both databases."""
     results = {}
     for database, schema_path in (('ymatrix', 'schema/ymatrix.sql'), ('mysql', 'schema/mysql.sql')):
         results[database] = load_database(config, database, location['data'], schema_path)
@@ -29,6 +33,7 @@ def run_load(config, location):
 
 
 def run_validate(config, location):
+    """Validate local data and print comparable row counts from both databases."""
     rows = validate_databases(config, location['data'], raise_on_mismatch=True)
     print('table,expected,ymatrix,mysql,match')
     for row in rows:
@@ -37,6 +42,7 @@ def run_validate(config, location):
 
 
 def run_benchmark(config, location, preflight_info=None):
+    """Execute both SQL suites and write detail, report, environment, and log files."""
     sql_dirs = {'ymatrix': config['paths']['ymatrix_sql_dir'],
                 'mysql': config['paths']['mysql_sql_dir']}
     all_rows, all_summaries, correctness, comparisons = run_benchmark_suite(config, sql_dirs)
@@ -81,6 +87,7 @@ def run_benchmark(config, location, preflight_info=None):
 
 
 def main(argv=None):
+    """Parse one CLI command and return a process-compatible exit code."""
     parser = argparse.ArgumentParser(description='YMatrix/MySQL benchmark MVP')
     parser.add_argument('command', choices=['preflight', 'generate', 'load', 'validate', 'benchmark', 'all'])
     parser.add_argument('--config', default='config.local.json')

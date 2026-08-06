@@ -1,3 +1,5 @@
+"""Discover SQL, run warmup and measurement rounds, and compare both databases."""
+
 import datetime
 import os
 import time
@@ -33,6 +35,7 @@ def classify_error(message):
 
 
 def benchmark_database(config, database, sql_dir, rounds=None, runner=None, result_store=None):
+    """Measure one database while excluding warmup rows from formal results."""
     rounds = rounds or int(config['benchmark'].get('measurement_rounds', 5))
     warmups = int(config['benchmark'].get('warmup_rounds', 1))
     session_sql = config.get(database, {}).get('session_sql', [])
@@ -101,6 +104,7 @@ def benchmark_database(config, database, sql_dir, rounds=None, runner=None, resu
 
 
 def compare_result_sets(result_store):
+    """Compare normalized first-result summaries for matching query IDs."""
     query_ids = sorted(set(result_store.get('ymatrix', {})) |
                        set(result_store.get('mysql', {})))
     comparisons = []
@@ -119,6 +123,7 @@ def compare_result_sets(result_store):
 
 
 def build_comparisons(summaries):
+    """Calculate per-query YMatrix/MySQL performance differences from summaries."""
     query_ids = sorted(set(summaries.get('ymatrix', {})) |
                        set(summaries.get('mysql', {})))
     result = []
@@ -150,6 +155,7 @@ def build_comparisons(summaries):
 
 
 def run_benchmark_suite(config, sql_dirs, runner=None):
+    """Run both database suites and return details, statistics, and comparisons."""
     all_rows = []
     summaries = {}
     result_store = {}

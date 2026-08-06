@@ -1,3 +1,5 @@
+"""Calculate benchmark aggregates using nearest-rank percentile semantics."""
+
 import math
 
 
@@ -10,6 +12,7 @@ def percentile_nearest_rank(values, percentile):
 
 
 def summarize(elapsed_values, successes):
+    """Summarize successful timings while retaining all attempts in success rate."""
     values = list(elapsed_values)
     if not values:
         return {'avg': 0, 'min': 0, 'max': 0, 'p95': 0, 'success_rate': 0}

@@ -1,3 +1,5 @@
+"""Load the same generated CSV rows into both databases with safe batched INSERTs."""
+
 import csv
 import os
 from collections import OrderedDict
@@ -26,6 +28,7 @@ INDEXES = (
 
 
 def sql_literal(value):
+    """Return a safely quoted SQL string literal or NULL for an empty value."""
     if value is None or value == '':
         return 'NULL'
     text = str(value).replace('\\', '\\\\').replace("'", "''")
@@ -66,6 +69,7 @@ def ensure_indexes(config, database, runner=None):
 
 
 def load_database(config, database, data_dir, schema_path, runner=None, batch_size=500):
+    """Initialize, clear, batch-load, and index all project tables in one database."""
     with open(schema_path, 'r') as schema_handle:
         schema_sql = schema_handle.read()
     execute_sql(config, database, schema_sql, runner=runner)

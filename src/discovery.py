@@ -1,3 +1,5 @@
+"""Discover non-recursive SQL files in deterministic filename order."""
+
 import os
 
 

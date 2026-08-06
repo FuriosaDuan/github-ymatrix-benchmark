@@ -1,3 +1,5 @@
+"""Load, validate, and normalize benchmark configuration from JSON."""
+
 import json
 import os
 
@@ -7,6 +9,7 @@ class ConfigError(Exception):
 
 
 def load_config(path):
+    """Return validated configuration with Python 3.6-compatible defaults."""
     if not os.path.exists(path):
         raise ConfigError('配置文件不存在: ' + path)
     with open(path, 'r') as handle:
